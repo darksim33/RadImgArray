@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "radimgarray"
+version = "0.1.0"
+description = ""
+authors = ["thiel <57491748+darksim33@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{ include = "radimgarray", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
