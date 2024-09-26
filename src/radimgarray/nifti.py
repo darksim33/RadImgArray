@@ -40,3 +40,18 @@ def check_for_nifti(file: Path):
         elif file.suffix == ".gz":
             if Path(file.stem).suffix == ".nii":
                 return True
+
+def dicom_header_to_nifti_header(dicom_headers):
+    nifti_header = nib.Nifti1Header()
+    for dcm in dicom_headers:
+        for key, value in dcm.items():
+            if key not in nifti_header:
+                try:
+                    nifti_header[key] = value
+                except KeyError:
+                    pass
+            elif header[key] != value:
+                if type(header[key]) != list:
+                    nifti_header[key] = list(header[key])
+                header[key].append(value)
+    return nifti_header
