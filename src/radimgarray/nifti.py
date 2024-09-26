@@ -3,8 +3,8 @@ import nibabel as nib
 from pathlib import Path
 
 
-def load(path: Path):
-    return nib.load(path)
+def load(file: Path):
+    return nib.load(file)
 
 
 def update(data: np.ndarray | list, nii: nib.Nifti1Image | nib.Nifti2Image, **kwargs):
@@ -40,6 +40,8 @@ def check_for_nifti(file: Path):
         elif file.suffix == ".gz":
             if Path(file.stem).suffix == ".nii":
                 return True
+    else:
+        return False
 
 def dicom_header_to_nifti_header(dicom_headers):
     nifti_header = nib.Nifti1Header()
