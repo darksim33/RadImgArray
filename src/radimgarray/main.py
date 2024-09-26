@@ -4,22 +4,23 @@ from copy import deepcopy
 
 from . import nifti
 from . import plotting
+from . import dicom
 
 
 class RadImgArray(np.ndarray):
-    def __new__(cls, input_array: np.ndarray | list | None, *args, **kwargs):
+    def __new__(cls, input_array: np.ndarray | list | None = None, *args, **kwargs):
         if input_array is None:
             input_array = np.array([])
         obj = np.asarray(input_array).view(cls)
         return obj
 
-    def __init__(self, input_array, *args, **kwargs):
+    def __init__(self, input_array: np.ndarray | list | None = None, *args, **kwargs):
         super().__init__()
         self.path: Path | None = None
         self.nifti: nibabel.nifti1.Nifti1Image | nibabel.nifti1.Nifti1Image | None = (
             None
         )
-        # self.dicom
+        self.dicom = dicom.DicomImage()
 
     def __array_finalize__(self, obj, /):
         if obj is None:
@@ -34,9 +35,10 @@ class RadImgArray(np.ndarray):
             if self.path.is_file():
                 self.nifti = nifit.load(path)
                 self.update_data(self.nifti.get_fdata())
-        elif self.path.suffix == ".dcm":
+        elif self.path.suffix == ".dcm" or self.path.is_dir():
             # TODO add dcm importer
-            pass
+            self.dicom.data, self.dicom.header = dicom.load(self.path)
+            self.update_data(self.dicom.data)
 
     def update_data(self, data: np.ndarray | list):
         self[:] = data
