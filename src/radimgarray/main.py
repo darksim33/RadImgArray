@@ -5,12 +5,13 @@ from copy import deepcopy
 from . import nifti
 from . import plotting
 from . import dicom
+from .nifti import check_for_nifti
 
 
 class RadImgArray(np.ndarray):
-    def __new__(cls, input_array: np.ndarray | list | None = None, *args, **kwargs):
+    def __new__(cls, input_array: np.ndarray| list | None = None, *args, **kwargs):
         if input_array is None:
-            input_array = np.array([])
+            input_array = np.empty(0)
         obj = np.asarray(input_array).view(cls)
         return obj
 
@@ -31,17 +32,20 @@ class RadImgArray(np.ndarray):
 
         self.path = path if isinstance(path, Path) else Path(path)
 
-        if self.path.suffix == ".nii":
+        if check_for_nifti(self.path):
             if self.path.is_file():
-                self.nifti = nifit.load(path)
+                self.nifti = nifti.load(path)
                 self.update_data(self.nifti.get_fdata())
         elif self.path.suffix == ".dcm" or self.path.is_dir():
-            # TODO add dcm importer
             self.dicom.data, self.dicom.header = dicom.load(self.path)
             self.update_data(self.dicom.data)
 
     def update_data(self, data: np.ndarray | list):
-        self[:] = data
+        new_array = np.empty(data.shape, dtype=data.dtype)
+        new_array[:] = data
+        self.__dict__ = new_array.__dict__.copy()
+        # self.resize(data.shape, refcheck=False)
+        # self[:] = data
         self.nifti = nifti.update(data, self.nifti)
 
     def copy(self, **kwargs):
