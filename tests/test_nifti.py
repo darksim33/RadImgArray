@@ -1,9 +1,9 @@
 from radimgarray import RadImgArray
 import numpy as np
-import pytest
+from pathlib import Path
 
+def test_from_nii(nifti_file):
+    rad_img = RadImgArray()
+    rad_img.load(nifti_file)
+    assert rad_img.shape == (178, 178, 3, 0)
 
-# def test_rad_img_array():
-test = np.random.rand(3, 3, 3, 3)
-rad_img = RadImgArray(test)
-rad_img.show()
