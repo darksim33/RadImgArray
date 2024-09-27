@@ -1,60 +1,75 @@
 import numpy as np
 from pathlib import Path
 from copy import deepcopy
+import nibabel as nib
 
 from . import nifti
 from . import plotting
 from . import dicom
-from .nifti import check_for_nifti
 
 
 class RadImgArray(np.ndarray):
-    def __new__(cls, input_array: np.ndarray| list | None = None, *args, **kwargs):
-        if input_array is None:
-            input_array = np.empty(0)
-        obj = np.asarray(input_array).view(cls)
+    _nifti: nib.nifti1.Nifti1Image | nib.nifti2.Nifti2Image | None = (
+        None  # stores initial nifti data if given
+    )
+    _dicom: dicom.DicomImage | None = None  # stores initial dicom data if given
+    _path: Path | None = None  # stores initial path if given
+
+    def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
+        if isinstance(_input, (Path, str)):
+            _input = Path(_input) if isinstance(_input, str) else _input
+            _input = cls._load(_input, args, kwargs)
+        elif isinstance(_input, list):
+            _input = np.array(_input)
+        elif isinstance(_input, np.ndarray):
+            pass
+        elif _input is None:
+            raise TypeError("RadImgArray() missing required argument 'input' (pos 0)")
+        else:
+            raise TypeError("Input type not supported")
+        obj = np.asarray(_input).view(cls)
         return obj
 
-    def __init__(self, input_array: np.ndarray | list | None = None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__()
-        self.path: Path | None = None
-        self.nifti: nibabel.nifti1.Nifti1Image | nibabel.nifti1.Nifti1Image | None = (
-            None
-        )
-        self.dicom = dicom.DicomImage()
 
     def __array_finalize__(self, obj, /):
         if obj is None:
             return
         self.info = getattr(obj, "info", None)
 
-    def load(self, path: Path | str, **kwargs):
-
-        self.path = path if isinstance(path, Path) else Path(path)
-
-        if check_for_nifti(self.path):
-            if self.path.is_file():
-                self.nifti = nifti.load(path)
-                self.update_data(self.nifti.get_fdata())
-        elif self.path.suffix == ".dcm" or self.path.is_dir():
-            self.dicom.data, self.dicom.header = dicom.load(self.path)
-            self.update_data(self.dicom.data)
-
-    def update_data(self, data: np.ndarray | list):
-        new_array = np.empty(data.shape, dtype=data.dtype)
-        new_array[:] = data
-        self.__dict__ = new_array.__dict__.copy()
-        # self.resize(data.shape, refcheck=False)
-        # self[:] = data
-        self.nifti = nifti.update(data, self.nifti)
+    @classmethod
+    def _load(cls, path: Path, *args, **kwargs) -> np.array:
+        """
+        Load image data from file. Either Dicom or NifTi are supported.
+        Args:
+            path: Path to image file or folder
+            *args:
+            **kwargs:
+        """
+        cls.path = path
+        if nifti.check_for_nifti(cls.path):
+            cls.nifti = nifti.load(path)
+            return cls.nifti.get_fdata()
+        elif cls.path.suffix == ".dcm" or cls.path.is_dir():
+            cls.dicom = dicom.DicomImage()
+            cls.dicom.data, cls.dicom.header = dicom.load(cls.path)
+            return cls.dicom.data.copy()
 
     def copy(self, **kwargs):
+        """Copy array and metadata"""
         return deepcopy(self)
 
-    def save(self, path: Path | str, **kwargs):
+    def save(self, path: Path | str, save_as: str | None = None, **kwargs):
         path = path if isinstance(path, Path) else Path(path)
-        if nifti.check_for_nifti(path):
-            nifti.save(self.nifti, path)
+        if save_as in ["nifti", "nii", ".nii.gz", "NIfTI"] or (
+            nifti.check_for_nifti(path) and not save_as in ["dicom", "dcm", "DICOM"]
+        ):
+            # TODO: Update nifti data if necessary
+            np_array = np.array(self.copy())
+            nifti.save(np_array, path, self.nifti)
+        elif path.suffix == ".dcm" or path.is_dir():
+            dicom.save(self.dicom, path)
 
     def show(self):
         plotting.show_image(self)
