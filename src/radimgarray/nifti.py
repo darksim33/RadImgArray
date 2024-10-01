@@ -7,7 +7,7 @@ from pathlib import Path
 class NiftiImage:
     def __init__(self, file: Path = None):
         self.header = None  # original Header from Nifti file
-        self.affine = None  # original Affine from Nifti file
+        self.affine = None  # original Affine from Nifti file (position of image array data in reference space)
         self.shape = None   # original shape from Nifti file
 
     def load(self, file: Path) -> np.ndarray:
