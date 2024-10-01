@@ -50,6 +50,18 @@ class DicomImage:
         self.header = [dcm[0].items for dcm in dicom_series_sorted]
         return dicom_matrix
 
+    def save(self, array: np.ndarray | list, path: Path):
+        """Save dicom data to path - simple copilot placeholder - untested"""
+        if not (array.shape == self.shape).all():
+            raise ValueError("Array dimensions have changed since import. Cannot save dicom files.")
+        else:
+            pass
+            # permute data back to original shape and apply header
+        for idx, dcm in enumerate(dicom.data):
+            dcm.PixelData = dcm.pixel_array.tobytes()
+            dcm.save_as(path / f"{idx}.dcm")
+        return path
+
 
 def get_series_data(series_list: list, interface: str = "cli") -> list:
     """
@@ -124,11 +136,3 @@ def sort_dicom_files(dicom_files: list[pydicom.Dataset]) -> list[list[pydicom.Da
             positions[position] = [dicom_file]
     sorted_positions = sorted(positions.items(), key=lambda x: x[0][2])
     return [files for position, files in sorted_positions]
-
-
-def save(dicom: DicomImage, path: Path):
-    """Save dicom data to path - simple copilot placeholder - untested"""
-    for idx, dcm in enumerate(dicom.data):
-        dcm.PixelData = dcm.pixel_array.tobytes()
-        dcm.save_as(path / f"{idx}.dcm")
-    return path
