@@ -55,8 +55,7 @@ class RadImgArray(np.ndarray):
         if nifti.check_for_nifti(cls.path):
             return cls.nifti.load(path)
         elif cls.path.suffix == ".dcm" or cls.path.is_dir():
-            cls.dicom.data, cls.dicom.header = dicom.load(cls.path)
-            return cls.dicom.data.copy()
+            return cls.dicom.load(cls.path)
 
     def copy(self, **kwargs):
         """Copy array and metadata"""
