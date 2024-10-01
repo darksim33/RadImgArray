@@ -17,6 +17,9 @@ class RadImgArray(np.ndarray):
     _path: Path | None = None  # stores initial path if given
 
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
+        # prepare subclasses
+        cls.nifti = nifti.NiftiImage()
+        cls.dicom = dicom.DicomImage()
         if isinstance(_input, (Path, str)):
             _input = Path(_input) if isinstance(_input, str) else _input
             _input = cls._load(_input, args, kwargs)
@@ -50,12 +53,9 @@ class RadImgArray(np.ndarray):
         """
         cls.path = path
         if nifti.check_for_nifti(cls.path):
-            cls.nifti = nifti.load(path)
-            return cls.nifti.get_fdata()
+            return cls.nifti.load(path)
         elif cls.path.suffix == ".dcm" or cls.path.is_dir():
-            cls.dicom = dicom.DicomImage()
-            cls.dicom.data, cls.dicom.header = dicom.load(cls.path)
-            return cls.dicom.data.copy()
+            return cls.dicom.load(cls.path)
 
     def copy(self, **kwargs):
         """Copy array and metadata"""
@@ -68,7 +68,7 @@ class RadImgArray(np.ndarray):
         ):
             # TODO: Update nifti data if necessary
             np_array = np.array(self.copy())
-            nifti.save(np_array, path, self.nifti)
+            self.nifti.save(np_array, path, **kwargs)
         elif path.suffix == ".dcm" or path.is_dir():
             dicom.save(self.dicom, path)
 
