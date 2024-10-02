@@ -14,7 +14,7 @@ class RadImgArray(np.ndarray):
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
         if isinstance(_input, (Path, str)):
             _input = Path(_input) if isinstance(_input, str) else _input
-            array, info = cls._load(_input, args, kwargs)
+            array, info = cls.__load(_input, args, kwargs)
         elif isinstance(_input, list):
             array = np.array(_input)
             info = {"type": "list"}
@@ -35,7 +35,7 @@ class RadImgArray(np.ndarray):
 
 
     @classmethod
-    def _load(cls, path: Path, *args, **kwargs) -> np.array:
+    def __load(cls, path: Path, *args, **kwargs) -> np.array:
         """
         Load image data from file. Either Dicom or NifTi are supported.
         Args:
