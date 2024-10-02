@@ -19,6 +19,9 @@ def nifti_out_file(root):
     if file.is_file():
         file.unlink()
 
+@pytest.fixture
+def nifti_seg_file(root):
+    return root / "tests" / ".assets" / "test_seg.nii.gz"
 
 @pytest.fixture
 def dicom_folder(root):
