@@ -1,7 +1,7 @@
 from radimgarray import RadImgArray
 import nibabel as nib
 
-from test_rad_img_array import behaves_like_ndarray
+from .test_rad_img_array import behaves_like_ndarray
 
 
 def test_from_nii(nifti_file):

@@ -10,44 +10,28 @@ from . import dicom
 
 
 class RadImgArray(np.ndarray):
-    _nifti: _nifti.NiftiImage | None = (
-        None  # stores initial nifti data if given
-    )
-    _dicom: _dicom.DicomImage | None = None  # stores initial dicom data if given
-    _path: Path | None = None  # stores initial path if given
-
+    info: dict
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
-        # prepare subclasses
-        cls._nifti = nifti.NiftiImage()
-        cls._dicom = dicom.DicomImage()
-        cls._path = None
         if isinstance(_input, (Path, str)):
             _input = Path(_input) if isinstance(_input, str) else _input
-            _input = cls._load(_input, args, kwargs)
+            array, info = cls._load(_input, args, kwargs)
         elif isinstance(_input, list):
-            _input = np.array(_input)
+            array = np.array(_input)
+            info = {"type": "list"}
         elif isinstance(_input, np.ndarray):
-            pass
+            array = _input
+            info = {"type": "np_array"}
         elif _input is None:
             raise TypeError("RadImgArray() missing required argument 'input' (pos 0)")
         else:
             raise TypeError("Input type not supported")
-        obj = np.asarray(_input).view(cls)
-        obj.nifti = cls._nifti
-        obj.dicom = cls._dicom
-        obj.path = cls._path
-        return cls
-
-    # def __init__(self, *args, **kwargs):
-    #     # super().__init__()
-    #     self.nifti = self._nifti
-    #     self.path = self._path
+        obj = np.asarray(array).view(cls)
+        obj.info = info
+        return obj
 
     def __array_finalize__(self, obj):
         if obj is None: return
-        self.dicom = getattr(obj, "dicom", None)
-        self.nifti = getattr(obj, "nifti", None)
-        self.path = getattr(obj, "path", None)
+        self.info = getattr(obj, "info", {"type": None})
 
 
     @classmethod
@@ -59,19 +43,10 @@ class RadImgArray(np.ndarray):
             *args:
             **kwargs:
         """
-        cls._path = path
-        if nifti.check_for_nifti(cls._path):
-            return cls._nifti.load(path)
-        elif cls._path.suffix == ".dcm" or cls._path.is_dir():
-            return cls.dicom.load(cls._path)
-
-    # @property
-    # def dicom(self):
-    #     return self._dicom
-    #
-    # @property
-    # def path(self):
-    #     return self._path
+        if nifti.check_for_nifti(path):
+            return nifti.load(path)
+        elif path.suffix == ".dcm" or path.is_dir():
+            return dicom.load(path)
 
     def copy(self, **kwargs):
         """Copy array and metadata"""
@@ -80,13 +55,13 @@ class RadImgArray(np.ndarray):
     def save(self, path: Path | str, save_as: str | None = None, **kwargs):
         path = path if isinstance(path, Path) else Path(path)
         if save_as in ["nifti", "nii", ".nii.gz", "NIfTI"] or (
-                _nifti.check_for_nifti(path) and not save_as in ["dicom", "dcm", "DICOM"]
+                nifti.check_for_nifti(path) and not save_as in ["dicom", "dcm", "DICOM"]
         ):
             # TODO: Update nifti data if necessary
             np_array = np.array(self.copy())
-            self._nifti.save(np_array, path, **kwargs)
+            nifti.save(np_array, path, self.info, **kwargs)
         elif path.suffix == ".dcm" or path.is_dir():
-            _dicom.save(self._dicom, path)
+            dicom.save(self, path, self.info)
 
     def show(self):
         plotting.show_image(self)

@@ -4,6 +4,18 @@ import pydicom
 from pathlib import Path
 
 
+"""
+Dicom Dict
+{
+    "type": "dicom",
+    "path": Path,
+    "header": [{},...]
+    "affine": np.eye(4), not implemented jet
+    "shape": (x, y, z, t)
+}
+
+"""
+
 class DicomImage:
     def __init__(self):
         self.header = None  # list of dict with header information for each loaded dicom file
@@ -11,56 +23,63 @@ class DicomImage:
         self.affine = np.eye(4)  # affine matrix for position of image array data in reference space
         self.shape = None
 
-    def load(self, path: Path) -> np.ndarray | None:
-        """
-        Load dicom files from a directory.
-        If multiple series are discovered in the directory, the user is asked to select one.
-        Args:
-            path: folder containing dicom files or folders with files
+def load(path: Path) -> (np.ndarray | None, dict):
+    """
+    Load dicom files from a directory.
+    If multiple series are discovered in the directory, the user is asked to select one.
+    Args:
+        path: folder containing dicom files or folders with files
 
-        Returns:
+    Returns:
 
-        """
-        dicom_data = []
-        for file in path.glob("**/*"):
-            if file.suffix == ".dcm" or file.suffix == ".dicom" or file.suffix == "":
-                if file.is_file():
-                    try:
-                        dicom_data.append(pydicom.dcmread(file))
-                    except pydicom.errors.InvalidDicomError:
-                        # Not a dicom file
-                        pass
-        if dicom_data:
-            dicom_series = get_series_data(dicom_data)
-        else:
-            return None
+    """
+    dicom_data = []
+    for file in path.glob("**/*"):
+        if file.suffix == ".dcm" or file.suffix == ".dicom" or file.suffix == "":
+            if file.is_file():
+                try:
+                    dicom_data.append(pydicom.dcmread(file))
+                except pydicom.errors.InvalidDicomError:
+                    # Not a dicom file
+                    pass
+    if dicom_data:
+        dicom_series = get_series_data(dicom_data)
+    else:
+        return None
 
-        dicom_series_sorted = sort_dicom_files(dicom_series)
+    dicom_series_sorted = sort_dicom_files(dicom_series)
 
-        dicom_matrix = []
-        for idx in range(len(dicom_series_sorted)):
-            dicom_matrix.append([dcm.pixel_array for dcm in dicom_series_sorted[idx]])
+    dicom_matrix = []
+    for idx in range(len(dicom_series_sorted)):
+        dicom_matrix.append([dcm.pixel_array for dcm in dicom_series_sorted[idx]])
 
-        dicom_matrix = np.array(dicom_matrix)
-        if dicom_matrix.ndim == 3:
-            dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
-        if dicom_matrix.ndim == 4:
-            dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
-        self.shape = dicom_matrix.shape
-        self.header = [dcm[0].items for dcm in dicom_series_sorted]
-        return dicom_matrix
+    dicom_matrix = np.array(dicom_matrix)
+    if dicom_matrix.ndim == 3:
+        dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
+    if dicom_matrix.ndim == 4:
+        dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
+    info = {
+        "type": "dicom",
+        "path":path,
+        "header": [dcm[0].items for dcm in dicom_series_sorted],
+        "affine": np.eye(4),
+        "shape": dicom_matrix.shape
+    }
+    return dicom_matrix, info
 
-    def save(self, array: np.ndarray | list, path: Path):
-        """Save dicom data to path - simple copilot placeholder - untested"""
-        if not (array.shape == self.shape).all():
-            raise ValueError("Array dimensions have changed since import. Cannot save dicom files.")
-        else:
-            pass
-            # permute data back to original shape and apply header
-        for idx, dcm in enumerate(dicom.data):
-            dcm.PixelData = dcm.pixel_array.tobytes()
-            dcm.save_as(path / f"{idx}.dcm")
-        return path
+def save(array: np.ndarray | list, path: Path, info):
+    """Save dicom data to path - simple copilot placeholder - untested"""
+    if not (array.shape == info["shape"]).all():
+        raise ValueError("Array dimensions have changed since import. Cannot save dicom files.")
+    else:
+        pass
+        # permute data back to original shape and apply header
+    for idx, dcm in enumerate(dicom.data):
+        dcm.PixelData = dcm.pixel_array.tobytes()
+        dcm.save_as(path / f"{idx}.dcm")
+    return path
+
+
 
 
 def get_series_data(series_list: list, interface: str = "cli") -> list:
