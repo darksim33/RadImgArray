@@ -11,16 +11,25 @@ from . import dicom
 
 class RadImgArray(np.ndarray):
     info: dict
-    def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
+
+    def __new__(cls, _input: np.ndarray | list | Path | str, info: dict | None = None, *args, **kwargs):
+        """
+        Create a new RadImgArray object
+        Args:
+            _input: Either a numpy array, list or a path to a nifti file or dicom folder.
+            info: optional: dictionary from a already initialized RadImageArray with additional information about the image
+            *args:
+            **kwargs:
+        """
         if isinstance(_input, (Path, str)):
             _input = Path(_input) if isinstance(_input, str) else _input
             array, info = cls.__load(_input, args, kwargs)
         elif isinstance(_input, list):
             array = np.array(_input)
-            info = {"type": "list"}
+            info = info if not None else {"type": "list"}
         elif isinstance(_input, np.ndarray):
             array = _input
-            info = {"type": "np_array"}
+            info = info if not None else {"type": "np_array"}
         elif _input is None:
             raise TypeError("RadImgArray() missing required argument 'input' (pos 0)")
         else:
@@ -32,7 +41,6 @@ class RadImgArray(np.ndarray):
     def __array_finalize__(self, obj):
         if obj is None: return
         self.info = getattr(obj, "info", {"type": None})
-
 
     @classmethod
     def __load(cls, path: Path, *args, **kwargs) -> np.array:

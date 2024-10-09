@@ -8,12 +8,19 @@ packages = [{ include = "radimgarray", from = "src" }]
 
 [tool.poetry.dependencies]
 python = " ~3.9 || ~3.10 || ~3.11 || ~3.12"
-numpy = "^2.1.1"
+numpy = [
+    { version = "^2.1.1", python = "^3.10" },
+    { version = "^1.23.0", python = "~3.9" }
+]
 matplotlib = "^3.9.2"
 pathlib = "^1.0.1"
 nibabel = "^5.2.1"
 pyqt6 = "^6.7.1"
-pydicom = "^3.0.1"
+pydicom = [
+    { version = "^3.0.1", python = "^3.10" },
+    { version = "^2.2.1", python = "~3.9" },
+]
+imantics = "^0.1.12"
 
 [tool.poetry.group.dev]
 optional = true
@@ -21,6 +28,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2"
 black = "^23.3"
+tox = "^4.21.2"
 
 [build-system]
 requires = ["poetry-core"]

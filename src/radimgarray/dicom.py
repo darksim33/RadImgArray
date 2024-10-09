@@ -3,7 +3,6 @@ import numpy as np
 import pydicom
 from pathlib import Path
 
-
 """
 Dicom Dict
 {
@@ -16,12 +15,14 @@ Dicom Dict
 
 """
 
+
 class DicomImage:
     def __init__(self):
         self.header = None  # list of dict with header information for each loaded dicom file
         # TODO: no method for actual calculation from header data available atm
         self.affine = np.eye(4)  # affine matrix for position of image array data in reference space
         self.shape = None
+
 
 def load(path: Path) -> (np.ndarray | None, dict):
     """
@@ -55,17 +56,20 @@ def load(path: Path) -> (np.ndarray | None, dict):
 
     dicom_matrix = np.array(dicom_matrix)
     if dicom_matrix.ndim == 3:
-        dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
+        # dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
+        dicom_matrix = np.transpose(dicom_matrix, (1, 2, 0))
     if dicom_matrix.ndim == 4:
-        dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
+        dicom_matrix = np.transpose(dicom_matrix, (2, 3, 1, 0))
+        # dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
     info = {
         "type": "dicom",
-        "path":path,
+        "path": path,
         "header": [dcm[0].items for dcm in dicom_series_sorted],
         "affine": np.eye(4),
         "shape": dicom_matrix.shape
     }
     return dicom_matrix, info
+
 
 def save(array: np.ndarray | list, path: Path, info):
     """Save dicom data to path - simple copilot placeholder - untested"""
@@ -78,8 +82,6 @@ def save(array: np.ndarray | list, path: Path, info):
         dcm.PixelData = dcm.pixel_array.tobytes()
         dcm.save_as(path / f"{idx}.dcm")
     return path
-
-
 
 
 def get_series_data(series_list: list, interface: str = "cli") -> list:
@@ -122,7 +124,7 @@ def get_series_data(series_list: list, interface: str = "cli") -> list:
                     f"[{idx}]: {series_list[series_ids.index(series_id)].SeriesDescription}"
                 )
             number = input(
-                f"Enter the number of the series you want to load [0-{len(unique_series_ids)-1}]: "
+                f"Enter the number of the series you want to load [0-{len(unique_series_ids) - 1}]: "
             )
             print(f"Loading series number {number}")
             series_id = unique_series_ids[int(number)]
@@ -134,7 +136,7 @@ def get_series_data(series_list: list, interface: str = "cli") -> list:
         series_id = unique_series_ids[0]
 
     series_indexes = [idx for idx, x in enumerate(series_ids) if series_id == x]
-    return series_list[series_indexes[0] : series_indexes[-1] + 1]
+    return series_list[series_indexes[0]: series_indexes[-1] + 1]
 
 
 def sort_dicom_files(dicom_files: list[pydicom.Dataset]) -> list[list[pydicom.Dataset]]:
