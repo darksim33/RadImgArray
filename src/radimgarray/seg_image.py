@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .base_image import RadImgArray
 
+
 class SegImageArray(RadImgArray):
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
         """
@@ -53,21 +54,3 @@ class SegImageArray(RadImgArray):
     #         raise ValueError(f"Segmentation value {value} not found in array")
     #     else:
     #         return SegImageArray(self == value)
-
-    def get_mean_signal(self, value: int):
-        """
-        Get the mean signal of a specific segmentation.
-        Args:
-            value: int: The segmentation value to find.
-        Returns:
-            float: The mean signal of the segmentation value.
-        Raises:
-            ValueError: If the segmentation value is not found in the array.
-        """
-        if value in self.seg_values:
-            array = self[self == value]
-            array[array == 0] = np.nan
-            return np.nanmean(array, axis=0)
-        else:
-            raise ValueError(f"Segmentation value {value} not found in array")
-
