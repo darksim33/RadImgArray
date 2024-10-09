@@ -1,5 +1,6 @@
 from __future__ import annotations
 import numpy as np
+import PyQt6
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
@@ -34,7 +35,7 @@ def plot_3d_image(image: np.ndarray):
     """
 
     # Set the backend to Qt5Agg
-    matplotlib.use("QtAgg")
+    matplotlib.use("Qt5Agg")
 
     # Prepare plot
     init_idx = image.shape[-1] // 2
@@ -69,7 +70,7 @@ def plot_3d_image(image: np.ndarray):
 def plot_4d_image(image: np.ndarray):
 
     # Set the backend to Qt5Agg
-    matplotlib.use("QtAgg")
+    matplotlib.use("Qt5Agg")
 
     # Prepare plot
     init_slice_idx = image.shape[-2] // 2
