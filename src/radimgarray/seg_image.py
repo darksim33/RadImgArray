@@ -6,11 +6,21 @@ from .base_image import RadImgArray
 
 
 class SegImageArray(RadImgArray):
+    """A class for storing and manipulating segmentation images.
+
+    Attributes:
+        seg_values (np.ndarray): Unique segmentation values in the array.
+        number_segs (int): Number of unique segmentation values in the array.
+    """
+
+    seg_values: np.ndarray
+    number_segs: int
+
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
-        """
-        Create a new instance of SegImageArray.
+        """Create a new instance of SegImageArray.
+
         Args:
-            _input: (np.ndarray | list | Path | str): Input data for the array.
+            _input: (np.ndarray, list, Path, str): Input data for the array.
             *args: Additional arguments.
             **kwargs: Additional keyword arguments.
         Returns:
@@ -21,21 +31,22 @@ class SegImageArray(RadImgArray):
         obj.number_segs = int(np.unique(obj).shape[0])
         return obj
 
-    def __array_finalize__(self, obj, /):
+    def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
 
-    def get_seg_indices(self, value: int):
-        """
-        Get the indices of a specific segmentation value in the array.
+    def get_seg_indices(self, value: int) -> list[tuple]:
+        """Get the indices of a specific segmentation value in the array.
+
         Args:
-            value: int: The segmentation value to find.
+            value (int): The segmentation value to find.
         Returns:
-            tuple: Indices where the segmentation value is found.
+            (tuple): Indices where the segmentation value is found.
         Raises:
             ValueError: If the segmentation value is not found in the array.
         """
         if value in self.seg_values:
-            return np.where(self == value)
+            raw_indices = np.where(self == value)
+            return list(zip(*raw_indices))
         else:
             raise ValueError(f"Segmentation value {value} not found in array")
 
