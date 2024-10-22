@@ -1,6 +1,6 @@
 import numpy as np
 from radimgarray import tools
-from radimgarray import RadImgArray, SegImageArray
+from radimgarray import SegImageArray
 
 
 def get_random_even_int():
