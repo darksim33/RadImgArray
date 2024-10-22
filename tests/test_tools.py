@@ -35,3 +35,4 @@ def test_get_mean_signal(nifti_file, nifti_seg_file):
     img = np.ones((size, size, size, 16))
     mean = tools.get_mean_signal(img, seg, 1)
     assert mean.max() == 1
+    assert mean.shape == (16,)
