@@ -1,8 +1,15 @@
+"""Base image class for radiological enhanced image array
+
+This module provides the base image class for radiological enhanced image array.
+
+Classes:
+    RadImgArray: Radiological enhanced image array class
+"""
+
 from __future__ import annotations
 import numpy as np
 from pathlib import Path
 from copy import deepcopy
-import nibabel as nib
 
 from . import nifti
 from . import plotting
@@ -10,16 +17,35 @@ from . import dicom
 
 
 class RadImgArray(np.ndarray):
+    """Radiological enhanced image array class
+
+    Attributes:
+        info (dict): dictionary with additional information about the image like nifti
+            or dicom headers.
+    Methods:
+        __new__: Create a new RadImgArray object
+        __array_finalize__: Copy metadata when creating new array
+        copy: Copy array and metadata
+        save: Save image data to file
+        show: Display image
+    """
+
     info: dict
 
-    def __new__(cls, _input: np.ndarray | list | Path | str, info: dict | None = None, *args, **kwargs):
-        """
-        Create a new RadImgArray object
+    def __new__(
+        cls,
+        _input: np.ndarray | list | Path | str,
+        info: dict | None = None,
+        *args,
+        **kwargs,
+    ):
+        """Create a new RadImgArray object
         Args:
-            _input: Either a numpy array, list or a path to a nifti file or dicom folder.
-            info: optional: dictionary from a already initialized RadImageArray with additional information about the image
-            *args:
-            **kwargs:
+            _input (np.ndarray, list, Path, str): data input to transform/load
+            info (dict, optional): dictionary from a already initialized RadImageArray
+                with additional information about the image
+            *args: additional arguments
+            **kwargs: additional keyword arguments
         """
         if isinstance(_input, (Path, str)):
             _input = Path(_input) if isinstance(_input, str) else _input
@@ -39,7 +65,8 @@ class RadImgArray(np.ndarray):
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
+        if obj is None:
+            return
         self.info = getattr(obj, "info", {"type": None})
 
     @classmethod
@@ -47,7 +74,7 @@ class RadImgArray(np.ndarray):
         """
         Load image data from file. Either Dicom or NifTi are supported.
         Args:
-            path: Path to image file or folder
+            path (Path): to image file or folder
             *args:
             **kwargs:
         """
@@ -61,9 +88,17 @@ class RadImgArray(np.ndarray):
         return deepcopy(self)
 
     def save(self, path: Path | str, save_as: str | None = None, **kwargs):
+        """Save image data to file.
+
+        Can save either as NifTi, Dicom (or numpy+dict).
+        Args:
+            path (Path, str): to save the image
+            save_as (str, optional): format to save the image
+            **kwargs: additional keyword
+        """
         path = path if isinstance(path, Path) else Path(path)
         if save_as in ["nifti", "nii", ".nii.gz", "NIfTI"] or (
-                nifti.check_for_nifti(path) and not save_as in ["dicom", "dcm", "DICOM"]
+            nifti.check_for_nifti(path) and save_as not in ["dicom", "dcm", "DICOM"]
         ):
             # TODO: Update nifti data if necessary
             np_array = np.array(self.copy())

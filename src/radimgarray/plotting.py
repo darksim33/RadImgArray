@@ -1,7 +1,8 @@
 from __future__ import annotations
 import imantics
 import numpy as np
-import PyQt6
+
+# import PyQt6
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -9,14 +10,11 @@ from matplotlib.widgets import Slider
 
 
 def show_image(image: np.ndarray, title: str = ""):
-    """
-    Display a 2D image.
+    """Display a 2D image.
 
     Args:
-        image: np.ndarray
-            2D image to display.
-        title: str
-            Title of the plot.
+        image (np.ndarray): 2D image to display.
+        title (str, optional): Title of the plot.
     """
     if len(image.shape) < 3:
         plt.imshow(image, cmap="gray")
@@ -28,12 +26,10 @@ def show_image(image: np.ndarray, title: str = ""):
 
 
 def plot_3d_image(image: np.ndarray):
-    """
-    Display a 3D image.
+    """Display a 3D image.
 
     Args:
-        image: np.ndarray
-            3D image to display.
+        image (np.ndarray): 3D image to display.
     """
 
     # Set the backend to Qt5Agg
@@ -70,6 +66,11 @@ def plot_3d_image(image: np.ndarray):
 
 
 def plot_4d_image(image: np.ndarray):
+    """Display a 4D image.
+
+    Args:
+        image (np.ndarray): 4D image to display.
+    """
     # Set the backend to Qt5Agg
     matplotlib.use("Qt5Agg")
 
@@ -123,13 +124,17 @@ def plot_4d_image(image: np.ndarray):
 
 
 def calculate_polygons(array: np.ndarray, seg_values: list):
-    """
-    Lists polygons/segmentations for all slices.
+    """Lists polygons/segmentations for all slices.
 
     Creates a list containing one list for each slice (size = number of slices).
     Each of these lists contains the lists for each segmentation (number of segmentations).
     Each of these lists contains the polygons(/segmentation obj?) found in that slice (this length might be
     varying)
+
+    Args:
+        array (np.ndarray): 3D image array
+        seg_values (list): list of segmentation values
+
     """
     segmentations = dict()
     for seg_index in seg_values:
@@ -138,6 +143,19 @@ def calculate_polygons(array: np.ndarray, seg_values: list):
 
 
 class Segmentation:
+    """Segmentation class for a single segmentation.
+
+    The main purpose of the Segmentation class is to store the image array containing
+    only the selected segmentation, as well as the polygons for each slice. The class
+    uses the imantics library to convert the image array into a list of Polygon objects.
+
+    Attributes:
+        seg_index (int): segmentation index
+        img (np.ndarray): image array containing only the selected segmentation
+        polygons (dict): dictionary containing the polygons for each slice
+        polygon_patches (dict): dictionary containing the patches for each slice
+    """
+
     def __init__(self, seg_img: np.ndarray, seg_index: int):
         self.seg_index = seg_index
         self.img = seg_img.copy()
@@ -149,26 +167,12 @@ class Segmentation:
         # self.number_polygons = len(self.polygons)
 
     def __get_polygons(self):
-        """
-        Create imantics Polygon list of image array.
+        """Create imantics Polygon list of image array.
 
-        The __get_polygons function is a helper function that uses the imantics library to convert
-        the image array into a list of Polygon objects. The polygons are stored in self.polygons, and
-        a list of patches for each slice is stored in self.polygon_patches.
-
-        Parameters
-        ----------
-            self
-                Refer to the current object
-
-        Returns
-        -------
-
-            A list of polygon objects
-
-        Doc Author
-        ----------
-            Trelent
+        The __get_polygons function is a helper function that uses the imantics library
+        to convert the image array into a list of Polygon objects. The polygons are
+        stored in self.polygons, and a list of patches for each slice is stored in
+        self.polygon_patches.
         """
 
         # Set dictionaries for polygons
@@ -202,8 +206,7 @@ class Segmentation:
     # https://gist.github.com/yohai/81c5854eaa4f8eb5ad2256acd17433c8
     @staticmethod
     def patchify(polys):
-        """
-        Returns a matplotlib patch representing the polygon with holes.
+        """Returns a matplotlib patch representing the polygon with holes.
 
         polys is an iterable (i.e. list) of polygons, each polygon is a numpy array
         of shape (2, N), where N is the number of points in each polygon. The first
@@ -229,30 +232,30 @@ class Segmentation:
         ax.set_ylim([-6, 6])
         """
 
-        # TODO: this only works as desired if the first is the exterior and none of the other regions is outside the
-        #  first one therefor the segmentation needs to be treated accordingly
+        # TODO: this only works as desired if the first is the exterior and none of the
+        # other regions is outside the first one therefor the segmentation needs to be
+        # treated accordingly
 
         def reorder(poly, cw=True):
-            """
-            Reorders the polygon to run clockwise or counter-clockwise according to the value of cw.
+            """Reorders the polygon to run clockwise or counter-clockwise according to
+            the value of cw.
 
-            It calculates whether a polygon is cw or ccw by summing (x2-x1)*(y2+y1) for all edges of the polygon,
-            see https://stackoverflow.com/a/1165943/898213.
+            It calculates whether a polygon is cw or ccw by summing (x2-x1)*(y2+y1) for
+            all edges of the polygon, see https://stackoverflow.com/a/1165943/898213.
             """
             # Close polygon if not closed
             if not np.allclose(poly[:, 0], poly[:, -1]):
                 poly = np.c_[poly, poly[:, 0]]
             direction = (
-                                (poly[0] - np.roll(poly[0], 1)) * (poly[1] + np.roll(poly[1], 1))
-                        ).sum() < 0
+                (poly[0] - np.roll(poly[0], 1)) * (poly[1] + np.roll(poly[1], 1))
+            ).sum() < 0
             if direction == cw:
                 return poly
             else:
                 return np.array([p[::-1] for p in poly])
 
         def ring_coding(n):
-            """
-            Returns a list of len(n).
+            """Returns a list of len(n).
 
             Of this format:
             [MOVETO, LINETO, LINETO, ..., LINETO, LINETO CLOSEPOLY]
