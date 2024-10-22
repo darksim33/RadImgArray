@@ -6,8 +6,7 @@ from radimgarray import RadImgArray, SegImageArray
 
 
 def zero_pad_to_square(array, k_space: bool = False):
-    """
-    Zero pad an array to make it square.
+    """Zero pad an array to make it square.
     !This is image space zero padding!
     Args:
         array (np.ndarray): The array to pad.
@@ -28,18 +27,21 @@ def zero_pad_to_square(array, k_space: bool = False):
             new_fft_array = pad_array(fft_array, get_pad(fft_array))
             new_array = np.fft.ifftn(new_fft_array)
         else:
-            return new_array
+            return None
+    return new_array
 
 
-def get_mean_signal(img: RadImgArray | np.ndarray, seg: SegImageArray, value: int):
-    """
-    Get the mean signal of a specific segmentation.
+def get_mean_signal(
+    img: RadImgArray | np.ndarray, seg: SegImageArray, value: int
+) -> list:
+    """Get the mean signal of a specific segmentation.
+
     Args:
-        img: RadImgArray | np.ndarray: The image data.
-        seg: SegImageArray: The segmentation data
-        value: int: The segmentation value to find.
+        img (RadImgArray, np.ndarray): The image data.
+        seg (SegImageArray): The segmentation data
+        value (int): The segmentation value to find.
     Returns:
-        float: The mean signal of the segmentation value.
+        (list): The mean signal of the segmentation value.
     Raises:
         ValueError: If the segmentation value is not found in the array.
     """
@@ -50,17 +52,9 @@ def get_mean_signal(img: RadImgArray | np.ndarray, seg: SegImageArray, value: in
     if value in seg.seg_values:
         array = np.where(seg == value)
         img[not array] = np.nan
-        return np.nanmean(img, axis=3)
+        return [np.nanmean(img, axis=3)]
     else:
         raise ValueError(f"Segmentation value {value} not found in array")
-    fft_array = np.fft.rfftn(array)
-    new_fft_array = pad_array(fft_array, get_pad(fft_array))
-    new_array = np.fft.irfftn(new_fft_array)
-
-    if not isinstance(array, np.ndarray):
-        return type(array)(new_array)
-    else:
-        return new_array
 
 
 def get_pad(array: np.ndarray) -> np.ndarray | None:
