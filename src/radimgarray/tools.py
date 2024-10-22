@@ -33,7 +33,7 @@ def zero_pad_to_square(array, k_space: bool = False):
 
 def get_mean_signal(
     img: RadImgArray | np.ndarray, seg: SegImageArray, value: int
-) -> list:
+) -> np.ndarray:
     """Get the mean signal of a specific segmentation.
 
     Args:
@@ -52,7 +52,7 @@ def get_mean_signal(
     if value in seg.seg_values:
         array = np.where(seg == value)
         img[not array] = np.nan
-        return [np.nanmean(img, axis=3)]
+        return np.nanmean(img, axis=3)
     else:
         raise ValueError(f"Segmentation value {value} not found in array")
 
