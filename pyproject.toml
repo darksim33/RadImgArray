@@ -10,7 +10,7 @@ packages = [{ include = "radimgarray", from = "src" }]
 python = " ~3.9 || ~3.10 || ~3.11 || ~3.12"
 numpy = [
     { version = "^2.1.1", python = "^3.10" },
-    { version = "^1.23.0", python = "~3.9" }
+    { version = "^1.23.0", python = "~3.9" },
 ]
 matplotlib = "^3.9.2"
 pathlib = "^1.0.1"
@@ -21,6 +21,8 @@ pydicom = [
     { version = "^2.2.1", python = "~3.9" },
 ]
 imantics = "^0.1.12"
+pandas = "^1.4.0"
+openpyxl = "^3.0.9"
 
 [tool.poetry.group.dev]
 optional = true
@@ -29,6 +31,10 @@ optional = true
 pytest = "^7.2"
 black = "^23.3"
 tox = "^4.21.2"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
 
 [build-system]
 requires = ["poetry-core"]
