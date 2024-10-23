@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "radimgarray"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 authors = ["thiel <57491748+darksim33@users.noreply.github.com>"]
 readme = "README.md"
