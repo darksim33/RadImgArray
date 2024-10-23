@@ -13,7 +13,7 @@ class SegImageArray(RadImgArray):
         number_segs (int): Number of unique segmentation values in the array.
     """
 
-    seg_values: np.ndarray
+    seg_values: list[int]
     number_segs: int
 
     def __new__(cls, _input: np.ndarray | list | Path | str, *args, **kwargs):
@@ -27,8 +27,12 @@ class SegImageArray(RadImgArray):
             SegImageArray: A new instance of SegImageArray.
         """
         obj = super().__new__(cls, _input, *args, **kwargs)
-        obj.seg_values = np.unique(obj).astype(int)
-        obj.number_segs = int(np.unique(obj).shape[0])
+
+        seg_values = np.unique(obj).astype(int).tolist()
+        if 0 in seg_values:
+            seg_values.remove(0)  # excluding zero since its not a segmentation
+        obj.seg_values = seg_values
+        obj.number_segs = len(seg_values)
         return obj
 
     def __array_finalize__(self, obj):
