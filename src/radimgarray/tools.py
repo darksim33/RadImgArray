@@ -105,11 +105,18 @@ def save_mean_seg_signals_to_excel(
     Args:
         img (RadImgArray): The image data.
         seg (SegImageArray): The segmentation data.
+        b_values (np.ndarray): The b-values of the image.
         path (Path): The path to save the Excel file.
     See Also:
         :func:`get_mean_signal`
     """
-    _dict = {"index": b_values.squeeze().tolist()}
+    _dict = {
+        "index": (
+            b_values.squeeze().tolist()
+            if isinstance(b_values, np.ndarray)
+            else b_values
+        )
+    }
     for value in seg.seg_values:
         mean_signal = get_mean_signal(img, seg, value)
         _dict[value] = mean_signal.tolist()
@@ -117,24 +124,55 @@ def save_mean_seg_signals_to_excel(
     df.to_excel(path, header=False)
 
 
-def array_to_rgba(array: np.ndarray) -> np.ndarray:
+def array_to_rgba(
+    array: np.ndarray, alpha: float | np.float | np.ndarray
+) -> np.ndarray:
     """Convert an array to RGBA format.
+
+    2D, 3D and 4D arrays are supported. The RGBA dimension will always be the third in
+    the array. The final shape of the new array will similar to:
+    (x, y, rgba, z, t) for (x, y, z, t) array.
 
     Args:
         array (np.ndarray): The array to convert.
+        alpha (float, np.ndarray):
     Returns:
         (np.ndarray): The array in RGBA format.
     """
+    if isinstance(alpha, np.ndarray):
+        if not alpha.shape == array.shape:
+            raise ValueError("Alpha array must have the same shape as the input array")
+        alpha_array = alpha
+    else:
+        alpha_array = None
     if array.ndim == 2:
-        return np.repeat(array[:, :, np.newaxis], 4, axis=2)
+        new_array = array[:, :, np.newaxis]
+        if alpha_array is None:
+            alpha_array = np.full(new_array.shape, alpha)
+        new_array = np.repeat(new_array, 3, axis=2)
+        return np.dstack((new_array, alpha_array))
     elif array.ndim == 3:
-        return np.repeat(array, 4, axis=2)
+        new_array = array[:, :, :, np.newaxis]
+        if alpha_array is None:
+            alpha_array = np.full(new_array.shape, alpha)
+        new_array = np.repeat(new_array, 3, axis=3)
+        return np.transpose(
+            np.concatenate((new_array, alpha_array), axis=-1), (0, 1, 3, 2)
+        )
+    elif array.ndim == 4:
+        new_array = array[:, :, :, :, np.newaxis]
+        if alpha_array is None:
+            alpha_array = np.full(new_array.shape, alpha)
+        new_array = np.repeat(new_array, 3, axis=4)
+        return np.transpose(
+            np.concatenate((new_array, alpha_array), axis=-1), (0, 1, 4, 2, 3)
+        )
     else:
         raise ValueError("Array must be 2D or 3D")
 
 
 def slice_to_rgba(
-    img: RadImgArray | np.ndarray, slice_num: int, alpha: int = 1
+    img: RadImgArray | np.ndarray, slice_num: int, alpha: float | np.float = 1
 ) -> np.ndarray:
     """Convert a 2D, 3D or 4D array slice to RGBA format.
 
@@ -142,10 +180,12 @@ def slice_to_rgba(
     Args:
         img (RadImgArray, np.ndarray): The image array to convert.
         slice_num (int): The slice number to convert.
-        alpha (int): The alpha value of the RGBA format.
+        alpha (float): The alpha value of the RGBA format.
     Returns:
         (np.ndarray): The slice in RGBA format.
     """
+    if not alpha <= 1 and not alpha > 0:
+        raise ValueError("Alpha must be between 0 and 1")
     if img.ndim == 4:
         img = img[:, :, slice_num, 0]
     elif img.ndim == 3:
@@ -153,12 +193,16 @@ def slice_to_rgba(
     elif img.ndim == 2:
         img = img
     else:
-        raise ValueError("Array must be 2D or 3D or 4D")
+        raise ValueError("Array must be 2D, 3D or 4D")
 
     array = np.rot90(img)
     if not np.nanmax(array) == np.nanmin(array):
-        array_norm = (array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))
+        array_norm = np.repeat(
+            ((array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))),
+            3,
+            axis=2,
+        )
     else:
-        array_norm = array / np.nanmax(array)
+        array_norm = np.repeat((array / np.nanmax(array)), 3, axis=2)
     alpha_map = np.full(array_norm.shape, alpha)
-    return np.dstack((array_norm, array_norm, array_norm, alpha_map))
+    return np.dstack((array_norm, alpha_map))
