@@ -21,7 +21,7 @@ pydicom = [
     { version = "^2.2.1", python = "~3.9" },
 ]
 imantics = "^0.1.12"
-pandas = "^1.4.0"
+pandas = "^2.1.3"
 openpyxl = "^3.0.9"
 
 [tool.poetry.group.dev]
