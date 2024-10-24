@@ -1,3 +1,17 @@
+""" Module for handling dicom files.
+Holds all functions to load, save and check dicom files.
+
+
+Dicom info (dict):
+{
+    "type": "dicom",
+    "path": (Path),
+    "header": [{},...]
+    "affine": np.eye(4), not implemented jet
+    "shape": (x, y, z, t)
+}
+"""
+
 from __future__ import annotations
 import numpy as np
 import pydicom
@@ -6,72 +20,89 @@ from pathlib import Path
 
 class DicomImage:
     def __init__(self):
-        self.header = None  # list of dict with header information for each loaded dicom file
+        self.header = (
+            None  # list of dict with header information for each loaded dicom file
+        )
         # TODO: no method for actual calculation from header data available atm
-        self.affine = np.eye(4)  # affine matrix for position of image array data in reference space
+        self.affine = np.eye(
+            4
+        )  # affine matrix for position of image array data in reference space
         self.shape = None
 
-    def load(self, path: Path) -> np.ndarray | None:
-        """
-        Load dicom files from a directory.
-        If multiple series are discovered in the directory, the user is asked to select one.
-        Args:
-            path: folder containing dicom files or folders with files
 
-        Returns:
+def load(path: Path) -> tuple[np.ndarray | None, dict]:
+    """Load dicom files from a directory.
 
-        """
-        dicom_data = []
-        for file in path.glob("**/*"):
-            if file.suffix == ".dcm" or file.suffix == ".dicom" or file.suffix == "":
-                if file.is_file():
-                    try:
-                        dicom_data.append(pydicom.dcmread(file))
-                    except pydicom.errors.InvalidDicomError:
-                        # Not a dicom file
-                        pass
-        if dicom_data:
-            dicom_series = get_series_data(dicom_data)
-        else:
-            return None
+    If multiple series are discovered in the directory, the user is asked to select one.
+    Args:
+        path (Path): folder containing dicom files or folders with files
 
-        dicom_series_sorted = sort_dicom_files(dicom_series)
+    Returns:
+        dicom_matrix (np.ndarray): containing dicom data
+        info (dict): containing additional information about the dicom data
+            dicom: Module for handling dicom files.
+    """
+    dicom_data = []
+    for file in path.glob("**/*"):
+        if file.suffix == ".dcm" or file.suffix == ".dicom" or file.suffix == "":
+            if file.is_file():
+                try:
+                    dicom_data.append(pydicom.dcmread(file))
+                except pydicom.errors.InvalidDicomError:
+                    # Not a dicom file
+                    pass
+    if dicom_data:
+        dicom_series = get_series_data(dicom_data)
+    else:
+        return None
 
-        dicom_matrix = []
-        for idx in range(len(dicom_series_sorted)):
-            dicom_matrix.append([dcm.pixel_array for dcm in dicom_series_sorted[idx]])
+    dicom_series_sorted = sort_dicom_files(dicom_series)
 
-        dicom_matrix = np.array(dicom_matrix)
-        if dicom_matrix.ndim == 3:
-            dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
-        if dicom_matrix.ndim == 4:
-            dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
-        self.shape = dicom_matrix.shape
-        self.header = [dcm[0].items for dcm in dicom_series_sorted]
-        return dicom_matrix
+    dicom_matrix = []
+    for idx in range(len(dicom_series_sorted)):
+        dicom_matrix.append([dcm.pixel_array for dcm in dicom_series_sorted[idx]])
 
-    def save(self, array: np.ndarray | list, path: Path):
-        """Save dicom data to path - simple copilot placeholder - untested"""
-        if not (array.shape == self.shape).all():
-            raise ValueError("Array dimensions have changed since import. Cannot save dicom files.")
-        else:
-            pass
-            # permute data back to original shape and apply header
-        for idx, dcm in enumerate(dicom.data):
-            dcm.PixelData = dcm.pixel_array.tobytes()
-            dcm.save_as(path / f"{idx}.dcm")
-        return path
+    dicom_matrix = np.array(dicom_matrix)
+    if dicom_matrix.ndim == 3:
+        # dicom_matrix = np.permute_dims(dicom_matrix, [1, 2, 0])
+        dicom_matrix = np.transpose(dicom_matrix, (1, 2, 0))
+    if dicom_matrix.ndim == 4:
+        dicom_matrix = np.transpose(dicom_matrix, (2, 3, 1, 0))
+        # dicom_matrix = np.permute_dims(dicom_matrix, [2, 3, 1, 0])
+    info = {
+        "type": "dicom",
+        "path": path,
+        "header": [dcm[0].items for dcm in dicom_series_sorted],
+        "affine": np.eye(4),
+        "shape": dicom_matrix.shape,
+    }
+    return dicom_matrix, info
+
+
+def save(array: np.ndarray | list, path: Path, info):
+    """Save dicom data to path - simple copilot placeholder - untested"""
+    if not (array.shape == info["shape"]).all():
+        raise ValueError(
+            "Array dimensions have changed since import. Cannot save dicom files."
+        )
+    else:
+        pass
+        # permute data back to original shape and apply header
+    # for idx, dcm in enumerate(dicom.data):
+    #     dcm.PixelData = dcm.pixel_array.tobytes()
+    #     dcm.save_as(path / f"{idx}.dcm")
+    return path
 
 
 def get_series_data(series_list: list, interface: str = "cli") -> list:
-    """
-    Get series data from a list of dicom files
-    Args:
-        series_list: list of all found dicom files
-        interface: select interface for user interaction when multiple dicom series are found
+    """Get series data from a list of dicom files.
 
+    Args:
+        series_list (list): of all found dicom files
+        interface (str): select interface for user interaction when multiple dicom
+            series are found
     Returns:
-        single_series_list: list of dicom data from a single series
+        single_series_list (list): of dicom data from a single series
     """
     series_ids = []
     series_to_erase = []
@@ -103,7 +134,7 @@ def get_series_data(series_list: list, interface: str = "cli") -> list:
                     f"[{idx}]: {series_list[series_ids.index(series_id)].SeriesDescription}"
                 )
             number = input(
-                f"Enter the number of the series you want to load [0-{len(unique_series_ids)-1}]: "
+                f"Enter the number of the series you want to load [0-{len(unique_series_ids) - 1}]: "
             )
             print(f"Loading series number {number}")
             series_id = unique_series_ids[int(number)]
@@ -119,13 +150,13 @@ def get_series_data(series_list: list, interface: str = "cli") -> list:
 
 
 def sort_dicom_files(dicom_files: list[pydicom.Dataset]) -> list[list[pydicom.Dataset]]:
-    """
-    Sort dicom files by ImagePosition and 4. dimension functional data
+    """Sort dicom files by ImagePosition and 4. dimension functional data.
+
     From IntervalLudger - GoNifti
     Args:
-        dicom_files: unsorted list of dicom files
+        dicom_files (list): unsorted list of dicom files
     Returns:
-        : list of containing list of sorted dicom files
+        (list): list containing list of sorted dicom files
     """
     positions = {}
     for dicom_file in dicom_files:
