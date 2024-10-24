@@ -21,5 +21,25 @@ def nifti_out_file(root):
 
 
 @pytest.fixture
+def nifti_seg_file(root):
+    return root / "tests" / ".assets" / "test_seg.nii.gz"
+
+
+@pytest.fixture
 def dicom_folder(root):
     return root / "tests" / ".assets" / "dicom"
+
+
+@pytest.fixture
+def excel_out_file(root):
+    file = root / "tests" / "out.xlsx"
+    yield file
+    if file.is_file():
+        file.unlink()
+
+
+@pytest.fixture
+def b_values(root):
+    file = root / "tests" / ".assets" / "test_bvalues.bval"
+    with file.open("r") as f:
+        return [int(value) for value in f.read().split("\n")]
