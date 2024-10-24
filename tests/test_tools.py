@@ -20,7 +20,7 @@ def test_zero_pad_to_square():
         if not x == y:
             break
     new_array = tools.zero_pad_to_square(array)
-    assert not new_array.shape == array.shape
+    assert not new_array.shape == array.shape if new_array is not None else False
 
 
 def test_get_mean_signal(nifti_file, nifti_seg_file):
