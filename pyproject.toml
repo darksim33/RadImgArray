@@ -15,7 +15,7 @@ numpy = [
 matplotlib = "^3.9.2"
 pathlib = "^1.0.1"
 nibabel = "^5.2.1"
-pyqt6 = "^6.7.1"
+# pyqt6 = "^6.7.1"
 pydicom = [
     { version = "^3.0.1", python = "^3.10" },
     { version = "^2.2.1", python = "~3.9" },
