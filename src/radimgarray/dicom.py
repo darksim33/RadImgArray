@@ -30,7 +30,7 @@ class DicomImage:
         self.shape = None
 
 
-def load(path: Path) -> tuple[np.ndarray | None, dict]:
+def load(path: Path) -> tuple[np.ndarray | None, dict] | None:
     """Load dicom files from a directory.
 
     If multiple series are discovered in the directory, the user is asked to select one.
@@ -79,7 +79,7 @@ def load(path: Path) -> tuple[np.ndarray | None, dict]:
     return dicom_matrix, info
 
 
-def save(array: np.ndarray | list, path: Path, info):
+def save(array: np.ndarray, path: Path, info):
     """Save dicom data to path - simple copilot placeholder - untested"""
     if not (array.shape == info["shape"]).all():
         raise ValueError(
