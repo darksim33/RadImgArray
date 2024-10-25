@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from radimgarray import tools, RadImgArray
-from radimgarray import SegImageArray
+from radimgarray import SegImgArray
 
 
 def get_random_even_int(low: int, high: int):
