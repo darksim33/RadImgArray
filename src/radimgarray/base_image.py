@@ -22,6 +22,13 @@ class RadImgArray(np.ndarray):
     Attributes:
         info (dict): dictionary with additional information about the image like nifti
             or dicom headers.
+            {
+                "type": "nifti" | "dicom" | "list" | "np_array",
+                "path": Path,
+                "header": [{},...]
+                "affine": np.eye(4),
+                "shape": (x, y, z, t)
+            }
     Methods:
         __new__: Create a new RadImgArray object
         __array_finalize__: Copy metadata when creating new array
@@ -51,11 +58,19 @@ class RadImgArray(np.ndarray):
             _input = Path(_input) if isinstance(_input, str) else _input
             array, info = cls.__load(_input, args, kwargs)
         elif isinstance(_input, list):
-            array = np.array(_input)
-            info = info if not None else {"type": "list"}
+            array = _input
+            if info is not None:
+                info = info
+            else:
+                info = cls.__get_default_info()
+                info["type"] = "list"
         elif isinstance(_input, np.ndarray):
             array = _input
-            info = info if not None else {"type": "np_array"}
+            if info is not None:
+                info = info
+            else:
+                info = cls.__get_default_info()
+                info["type"] = "np_array"
         elif _input is None:
             raise TypeError("RadImgArray() missing required argument 'input' (pos 0)")
         else:
@@ -108,3 +123,12 @@ class RadImgArray(np.ndarray):
 
     def show(self):
         plotting.show_image(self)
+
+    def __get_default_info(self):
+        return {
+            "type": None,
+            "path": Path(),
+            "header": [],
+            "affine": np.eye(4),
+            "shape": [0, 0, 0, 0],
+        }
