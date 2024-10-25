@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from radimgarray import RadImgArray, SegImageArray
+from radimgarray import RadImgArray, SegImgArray
 
 
 def zero_pad_to_square(array, k_space: bool = False):
@@ -56,7 +56,7 @@ def pad_array(array: np.ndarray, pad: np.ndarray):
 
 
 def get_mean_signal(
-    img: RadImgArray | np.ndarray, seg: SegImageArray, value: int
+    img: RadImgArray | np.ndarray, seg: SegImgArray, value: int
 ) -> np.ndarray:
     """Get the mean signal of a specific segmentation.
 
@@ -81,7 +81,7 @@ def get_mean_signal(
         raise ValueError(f"Segmentation value {value} not found in array")
 
 
-def get_single_seg_array(seg: SegImageArray, value: int) -> SegImageArray:
+def get_single_seg_array(seg: SegImgArray, value: int) -> SegImgArray:
     """Get a new array with only a single segmentation presented by value.
 
     Args:
@@ -92,13 +92,13 @@ def get_single_seg_array(seg: SegImageArray, value: int) -> SegImageArray:
     """
     if value in seg.seg_values:
         new_array = np.where(seg == value, 1, 0)
-        return SegImageArray(new_array, info=seg.info)
+        return SegImgArray(new_array, info=seg.info)
     else:
         raise ValueError(f"Segmentation value {value} not found in array")
 
 
 def save_mean_seg_signals_to_excel(
-    img: RadImgArray, seg: SegImageArray, b_values: np.ndarray, path: Path
+    img: RadImgArray, seg: SegImgArray, b_values: np.ndarray, path: Path
 ):
     """Save the mean segmentation signal to an Excel file.
 

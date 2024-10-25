@@ -5,7 +5,7 @@ from pathlib import Path
 from .base_image import RadImgArray
 
 
-class SegImageArray(RadImgArray):
+class SegImgArray(RadImgArray):
     """A class for storing and manipulating segmentation images.
 
     Attributes:
