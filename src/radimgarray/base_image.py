@@ -124,7 +124,8 @@ class RadImgArray(np.ndarray):
     def show(self):
         plotting.show_image(self)
 
-    def __get_default_info(self):
+    @staticmethod
+    def __get_default_info():
         return {
             "type": None,
             "path": Path(),
