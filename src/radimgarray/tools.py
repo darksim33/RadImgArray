@@ -196,13 +196,16 @@ def slice_to_rgba(
         raise ValueError("Array must be 2D, 3D or 4D")
 
     array = np.rot90(img)
+    alpha_map = np.full(array.shape, alpha)[:, :, np.newaxis]
     if not np.nanmax(array) == np.nanmin(array):
+        array_norm = (
+            (array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))
+        )[:, :, np.newaxis]
         array_norm = np.repeat(
-            ((array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))),
+            array_norm,
             3,
             axis=2,
         )
     else:
         array_norm = np.repeat((array / np.nanmax(array)), 3, axis=2)
-    alpha_map = np.full(array_norm.shape, alpha)
-    return np.dstack((array_norm, alpha_map))
+    return np.concatenate((array_norm, alpha_map), axis=2)
