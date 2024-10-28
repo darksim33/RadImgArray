@@ -5,6 +5,7 @@ This module contains tools for image processing and analysis.
 
 from __future__ import annotations
 
+from multiprocessing.managers import Value
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -69,9 +70,21 @@ def get_mean_signal(
     Raises:
         ValueError: If the segmentation value is not found in the array.
     """
+    if img.ndim == 4:
+        if seg.ndim == 4:
+            if img.shape[:-1] != seg.shape[:-1]:
+                raise ValueError("Image and segmentation shape do not match")
+        elif seg.ndim == 3:
+            if img.shape[:-1] != seg.shape:
+                raise ValueError("Image and segmentation shape do not match")
+    elif img.ndim == 3:
+        if img.shape != seg.shape:
+            raise ValueError("Image and segmentation shape do not match")
+    elif img.ndim <= 2:
+        raise ValueError("Image must be 3D or 4D")
 
-    if img.shape[:-1] != seg.shape[:-1]:
-        raise ValueError("Image and segmentation shape do not match")
+    if seg.ndim <= 2 or seg.ndim > 4:
+        raise ValueError("Segmentation must be 3D or 4D")
 
     if value in seg.seg_values:
         array = np.where(seg == value)
