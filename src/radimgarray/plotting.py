@@ -33,7 +33,7 @@ def plot_3d_image(image: np.ndarray):
     """
 
     # Set the backend to Qt5Agg
-    matplotlib.use("Qt5Agg")
+    # matplotlib.use("Qt5Agg")
 
     # Prepare plot
     init_idx = image.shape[-1] // 2
