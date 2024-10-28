@@ -40,7 +40,7 @@ def behaves_like_ndarray(rad_img: RadImgArray, np_array: np.ndarray):
 
 def test_empty_assignment():
     try:
-        RadImgArray()
+        RadImgArray([])
     except TypeError:
         assert True
 
