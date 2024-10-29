@@ -27,16 +27,28 @@ class SegImgArray(RadImgArray):
             SegImageArray: A new instance of SegImageArray.
         """
         obj = super().__new__(cls, _input, *args, **kwargs)
-
-        seg_values = np.unique(obj).astype(int).tolist()
-        if 0 in seg_values:
-            seg_values.remove(0)  # excluding zero since its not a segmentation
-        obj.seg_values = seg_values
-        obj.number_segs = len(seg_values)
+        obj.seg_values = cls.__get_seg_values(obj)
+        obj.number_segs = len(obj.seg_values)
         return obj
 
     def __array_finalize__(self, obj):
+        # NOTE: the array_finalize helps keep the metadata when creating new arrays or
+        # when performing operations on arrays
         super().__array_finalize__(obj)
+        self.seg_values = getattr(obj, "seg_values", [])
+        self.number_segs = getattr(obj, "number_segs", 0)
+
+    @classmethod
+    def __get_seg_values(cls, obj) -> list[int]:
+        """Get the unique segmentation values in the array.
+
+        Returns:
+            list[int]: Unique segmentation values in the array.
+        """
+        seg_values = np.unique(obj).astype(int).tolist()
+        if 0 in seg_values:
+            seg_values.remove(0)  # excluding zero since it's not a segmentation
+        return seg_values
 
     def get_seg_indices(self, value: int) -> list[tuple]:
         """Get the indices of a specific segmentation value in the array.
@@ -44,7 +56,7 @@ class SegImgArray(RadImgArray):
         Args:
             value (int): The segmentation value to find.
         Returns:
-            (tuple): Indices where the segmentation value is found.
+            list(tuple): Indices where the segmentation value is found.
         Raises:
             ValueError: If the segmentation value is not found in the array.
         """
