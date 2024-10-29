@@ -80,6 +80,8 @@ class RadImgArray(np.ndarray):
         return obj
 
     def __array_finalize__(self, obj):
+        # NOTE: the array_finalize helps keep the metadata when creating new arrays or
+        # when performing operations on arrays
         if obj is None:
             return
         self.info = getattr(obj, "info", {"type": None})
