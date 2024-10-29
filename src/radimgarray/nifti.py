@@ -55,12 +55,12 @@ def save(
             dtype: numpy dtype (default: None) Change dtype
     """
 
-    if array.shape != info["shape"]:
+    if array.shape != info["shape"] and kwargs.get("verbose", False):
         warnings.warn(
             "Array dimensions have changed since import. Updating nifti header."
         )
 
-    if info["header"] is None:
+    if info["header"] is None or isinstance(info["header"], list):
         if kwargs.get("header", "Nifti1") == "Nifti1":
             header = nib.nifti1.Nifti1Header()
         else:
