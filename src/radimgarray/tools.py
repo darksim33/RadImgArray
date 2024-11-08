@@ -138,7 +138,7 @@ def save_mean_seg_signals_to_excel(
 
 
 def array_to_rgba(
-    array: np.ndarray, alpha: float | np.float | np.ndarray
+    array: np.ndarray, alpha: float | np.float | np.ndarray = 1
 ) -> np.ndarray:
     """Convert an array to RGBA format.
 
@@ -185,7 +185,7 @@ def array_to_rgba(
 
 
 def slice_to_rgba(
-    img: RadImgArray | np.ndarray, slice_num: int, alpha: float | np.float = 1
+    img: RadImgArray | np.ndarray, slice_num: int, alpha: float | np.float = 1.0
 ) -> np.ndarray:
     """Convert a 2D, 3D or 4D array slice to RGBA format.
 
@@ -212,13 +212,15 @@ def slice_to_rgba(
     alpha_map = np.full(array.shape, alpha)[:, :, np.newaxis]
     if not np.nanmax(array) == np.nanmin(array):
         array_norm = (
-            (array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))
-        )[:, :, np.newaxis]
+                         (array - np.nanmin(array)) / (np.nanmax(array) - np.nanmin(array))
+                     )[:, :, np.newaxis]
         array_norm = np.repeat(
             array_norm,
             3,
             axis=2,
         )
     else:
+        if array.ndim < 3:
+            array = array[:, :, np.newaxis]
         array_norm = np.repeat((array / np.nanmax(array)), 3, axis=2)
     return np.concatenate((array_norm, alpha_map), axis=2)
