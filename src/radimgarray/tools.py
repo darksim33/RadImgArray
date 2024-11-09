@@ -5,7 +5,6 @@ This module contains tools for image processing and analysis.
 
 from __future__ import annotations
 
-from multiprocessing.managers import Value
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -138,7 +137,7 @@ def save_mean_seg_signals_to_excel(
 
 
 def array_to_rgba(
-    array: np.ndarray, alpha: float | np.float | np.ndarray
+    array: np.ndarray, alpha: float | np.float | np.ndarray = 1.0
 ) -> np.ndarray:
     """Convert an array to RGBA format.
 
