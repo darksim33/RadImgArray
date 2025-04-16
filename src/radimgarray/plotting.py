@@ -9,31 +9,37 @@ import matplotlib.patches as patches
 from matplotlib.widgets import Slider
 
 
-def show_image(image: np.ndarray, title: str = ""):
+def show_image(image: np.ndarray, title: str = "", **kwargs):
     """Display a 2D image.
 
     Args:
         image (np.ndarray): 2D image to display.
         title (str, optional): Title of the plot.
+        **kwargs (optional): additional keyword arguments for the plotting function
+            "backend" (str): backend to use for the plot (default: "TkAgg")
+
+
     """
     if len(image.shape) < 3:
         plt.imshow(image, cmap="gray")
         plt.show()
     elif len(image.shape) == 3:
-        plot_3d_image(image)
+        plot_3d_image(image, **kwargs)
     elif len(image.shape) == 4:
-        plot_4d_image(image)
+        plot_4d_image(image, **kwargs)
 
 
-def plot_3d_image(image: np.ndarray):
+def plot_3d_image(image: np.ndarray, **kwargs):
     """Display a 3D image.
 
     Args:
         image (np.ndarray): 3D image to display.
+        **kwargs (optional): additional keyword arguments for the plotting function
+            "backend" (str): backend to use for the plot (default: "TkAgg")
     """
 
-    # Set the backend to Qt5Agg
-    # matplotlib.use("Qt5Agg")
+    # Set the backend
+    matplotlib.use(kwargs.get("backend", "TkAgg"))
 
     # Prepare plot
     init_idx = image.shape[-1] // 2
@@ -65,14 +71,16 @@ def plot_3d_image(image: np.ndarray):
     plt.show()
 
 
-def plot_4d_image(image: np.ndarray):
+def plot_4d_image(image: np.ndarray, **kwargs):
     """Display a 4D image.
 
     Args:
         image (np.ndarray): 4D image to display.
+        **kwargs (optional): additional keyword arguments for the plotting function
+            "backend" (str): backend to use for the plot (default: "TkAgg")
     """
-    # Set the backend to Qt5Agg
-    matplotlib.use("Qt5Agg")
+    # Set the backend
+    matplotlib.use(kwargs.get("backend", "TkAgg"))
 
     # Prepare plot
     init_slice_idx = image.shape[-2] // 2

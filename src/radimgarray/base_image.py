@@ -123,8 +123,15 @@ class RadImgArray(np.ndarray):
         elif path.suffix == ".dcm" or path.is_dir():
             dicom.save(self, path, self.info)
 
-    def show(self):
-        plotting.show_image(self)
+    def show(self, **kwargs):
+        """
+        Display the image with optional parameters.
+
+        Args:
+            **kwargs (optional): additional keyword arguments for the plotting function
+                "backend" (str): backend to use for the plot (default: "TkAgg")
+        """
+        plotting.show_image(self, **kwargs)
 
     @staticmethod
     def __get_default_info():
