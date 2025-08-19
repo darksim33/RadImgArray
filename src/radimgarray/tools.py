@@ -86,9 +86,12 @@ def get_mean_signal(
         raise ValueError("Segmentation must be 3D or 4D")
 
     if value in seg.seg_values:
-        array = np.where(seg == value)
-        img[not array] = np.nan
-        return np.nanmean(img, axis=(0, 1, 2))
+        mask = seg == value
+        if seg.ndim == 4:
+            img_masked = img[mask.squeeze(axis=3)]
+        else:
+            img_masked = img[mask]
+        return np.mean(img_masked, axis=0)
     else:
         raise ValueError(f"Segmentation value {value} not found in array")
 
