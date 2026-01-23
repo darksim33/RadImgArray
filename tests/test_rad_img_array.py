@@ -1,9 +1,9 @@
 import numpy as np
 
-from radimgarray import RadImgArray
+from radimgarray import ImgArray
 
 
-def behaves_like_ndarray(rad_img: RadImgArray, np_array: np.ndarray):
+def behaves_like_ndarray(rad_img: ImgArray, np_array: np.ndarray):
     # Check if shapes are the same
     assert rad_img.shape == np_array.shape
 
@@ -40,12 +40,12 @@ def behaves_like_ndarray(rad_img: RadImgArray, np_array: np.ndarray):
 
 def test_empty_assignment():
     try:
-        RadImgArray([])
+        ImgArray([])
     except TypeError:
         assert True
 
 
 def test_from_array():
     np_array = np.random.rand(3, 3, 3, 3)
-    rad_img = RadImgArray(np_array)
+    rad_img = ImgArray(np_array)
     behaves_like_ndarray(rad_img, np_array)
