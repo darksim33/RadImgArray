@@ -5,7 +5,9 @@ This module contains tools for image processing and analysis.
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
+from turtle import st
 
 import numpy as np
 import pandas as pd
@@ -90,7 +92,16 @@ def get_mean_signal(
     if value in seg.seg_values:
         mask = seg == value
         if seg.ndim == 4:
-            img_masked = img[mask.squeeze(axis=3)]
+            if seg.shape[-1] != 1:
+                warnings.warn(
+                    "Segmentation array has multiple channels, only the first channel will be used",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                mask = mask[..., 0]
+            if mask.ndim == 4:
+                mask = mask.squeeze(axis=3)
+            img_masked = img[mask]
         else:
             img_masked = img[mask]
         return np.mean(img_masked, axis=0)

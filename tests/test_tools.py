@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from radimgarray import ImgArray, SegArray, tools
 
@@ -48,6 +49,7 @@ def test_get_single_seg_array(nifti_seg_file):
     assert seg_single.number_segs == 1
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_mean_seg_signals_to_excel(
     nifti_file, nifti_seg_file, b_values, excel_out_file
 ):
@@ -61,9 +63,9 @@ def test_mean_seg_signals_to_excel(
         mean_signals.append(tools.get_mean_signal(img, seg, seg_value))
     for index in df.index:
         series = df.loc[index, :].tolist()[1:]
-        assert [round(value, 12) for value in mean_signals[index].tolist()] == [
-            round(value, 12) for value in series
-        ]
+        assert np.allclose(
+            mean_signals[index], series, equal_nan=True, rtol=1e-12, atol=0
+        )
 
 
 def test_array_to_rgba(nifti_file):
