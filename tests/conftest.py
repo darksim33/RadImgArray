@@ -1,5 +1,7 @@
-import pytest
+import shutil
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -28,6 +30,15 @@ def nifti_seg_file(root):
 @pytest.fixture
 def dicom_folder(root):
     return root / "tests" / ".assets" / "dicom"
+
+
+@pytest.fixture
+def dicom_out_folder(root):
+    """Fixture for DICOM output folder with cleanup."""
+    folder = root / "tests" / "out_dicom"
+    yield folder
+    if folder.exists():
+        shutil.rmtree(folder)
 
 
 @pytest.fixture
