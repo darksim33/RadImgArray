@@ -1,4 +1,4 @@
-""" Nifti file handling functions.
+"""Nifti file handling functions.
 Holds all functions to load, save and check nifti files.
 
 Nifti info (dict):
@@ -12,13 +12,15 @@ Nifti info (dict):
 """
 
 from __future__ import annotations
+
 import warnings
-import numpy as np
-import nibabel as nib
 from pathlib import Path
 
+import nibabel as nib
+import numpy as np
 
-def load(file: Path) -> tuple[np.ndarray, dict]:
+
+def load(file: Path, **kwargs) -> tuple[np.ndarray, dict]:
     """Load a nifti file.
 
     Args:
@@ -26,9 +28,12 @@ def load(file: Path) -> tuple[np.ndarray, dict]:
     Returns:
         (np.ndarray, dict): nifti data and info
     """
-    img = nib.load(file)
 
-    data = img.get_fdata()
+    img = nib.load(file)
+    if not kwargs.get("raw"):
+        data = img.get_fdata()
+    else:
+        data = np.array(img.dataobj)
     info = {
         "type": "nifti",
         "path": file,
