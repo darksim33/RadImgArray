@@ -1,4 +1,5 @@
 import nibabel as nib
+import numpy as np
 
 from radimgarray import ImgArray
 
@@ -11,6 +12,13 @@ def test_from_nii(nifti_file):
     nii = nib.load(nifti_file)
     np_array = nii.get_fdata()
     behaves_like_ndarray(rad_img, np_array)
+
+
+def test_from_nii_raw(nifti_file) -> None:
+    img = ImgArray(nifti_file)
+    nii = nib.load(nifti_file)
+    array = nii.get_fdata()
+    assert np.allclose(img, array)
 
 
 def test_save_from_nii(nifti_file, nifti_out_file):
