@@ -25,12 +25,14 @@ def load(file: Path, **kwargs) -> tuple[np.ndarray, dict]:
 
     Args:
         file (Path): path to nifti file
+        kwargs:
+            raw (bool): get data from dataobj.
     Returns:
         (np.ndarray, dict): nifti data and info
     """
 
     img = nib.load(file)
-    if not kwargs.get("raw"):
+    if not kwargs.get("raw", False):
         data = img.get_fdata()
     else:
         data = np.array(img.dataobj)
