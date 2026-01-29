@@ -120,7 +120,7 @@ class ImgArray(np.ndarray):
             # TODO: Update nifti data if necessary
             np_array = np.array(self.copy())
             nifti.save(np_array, path, self.info, **kwargs)
-        elif path.suffix == ".dcm" or path.is_dir():
+        elif save_as in ["dicom", "dcm", "DICOM"] or path.suffix == ".dcm" or path.is_dir():
             dicom.save(self, path, self.info)
 
     def show(self, **kwargs):
