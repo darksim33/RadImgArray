@@ -1,4 +1,4 @@
-""" Nifti file handling functions.
+"""Nifti file handling functions.
 Holds all functions to load, save and check nifti files.
 
 Nifti info (dict):
@@ -29,6 +29,9 @@ def load(file: Path) -> tuple[np.ndarray, dict]:
     img = nib.load(file)
 
     data = img.get_fdata()
+    # apply dtype from header
+    dtype = img.header.get_data_dtype()
+    data = data.astype(dtype)
     info = {
         "type": "nifti",
         "path": file,
@@ -79,10 +82,11 @@ def save(
     else:
         affine = info["affine"]
 
-    if isinstance(kwargs.get("dtype"), float):
-        header.set_data_dtype("f4")
-    elif isinstance(kwargs.get("dtype"), int):
-        header.set_data_dtype("i4")
+    dtype = kwargs.get("dtype", None)
+    if dtype is float:
+        header.set_data_dtype(np.float32)
+    elif dtype is int:
+        header.set_data_dtype(np.int32)
 
     if isinstance(header, nib.nifti1.Nifti1Header):
         nii = nib.Nifti1Image(array, affine, header)
