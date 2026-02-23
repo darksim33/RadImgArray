@@ -36,6 +36,11 @@ def load(file: Path, **kwargs) -> tuple[np.ndarray, dict]:
         data = img.get_fdata()
     else:
         data = np.array(img.dataobj)
+    
+    # apply dtype from header
+    dtype = img.header.get_data_dtype()
+    data = data.astype(dtype)
+    
     info = {
         "type": "nifti",
         "path": file,
@@ -86,10 +91,11 @@ def save(
     else:
         affine = info["affine"]
 
-    if isinstance(kwargs.get("dtype"), float):
-        header.set_data_dtype("f4")
-    elif isinstance(kwargs.get("dtype"), int):
-        header.set_data_dtype("i4")
+    dtype = kwargs.get("dtype", None)
+    if dtype is float:
+        header.set_data_dtype(np.float32)
+    elif dtype is int:
+        header.set_data_dtype(np.int32)
 
     if isinstance(header, nib.nifti1.Nifti1Header):
         nii = nib.Nifti1Image(array, affine, header)
