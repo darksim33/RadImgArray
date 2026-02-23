@@ -1,11 +1,13 @@
 from __future__ import annotations
-import numpy as np
+
 from pathlib import Path
 
-from .base_image import RadImgArray
+import numpy as np
+
+from .base_image import ImgArray
 
 
-class SegImgArray(RadImgArray):
+class SegArray(ImgArray):
     """A class for storing and manipulating segmentation images.
 
     Attributes:

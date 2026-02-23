@@ -12,26 +12,35 @@ Nifti info (dict):
 """
 
 from __future__ import annotations
+
 import warnings
-import numpy as np
-import nibabel as nib
 from pathlib import Path
 
+import nibabel as nib
+import numpy as np
 
-def load(file: Path) -> tuple[np.ndarray, dict]:
+
+def load(file: Path, **kwargs) -> tuple[np.ndarray, dict]:
     """Load a nifti file.
 
     Args:
         file (Path): path to nifti file
+        kwargs:
+            raw (bool): get data from dataobj.
     Returns:
         (np.ndarray, dict): nifti data and info
     """
-    img = nib.load(file)
 
-    data = img.get_fdata()
+    img = nib.load(file)
+    if not kwargs.get("raw", False):
+        data = img.get_fdata()
+    else:
+        data = np.array(img.dataobj)
+    
     # apply dtype from header
     dtype = img.header.get_data_dtype()
     data = data.astype(dtype)
+    
     info = {
         "type": "nifti",
         "path": file,

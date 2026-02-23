@@ -164,3 +164,6 @@ cython_debug/
 
 # Zed code editor
 pyrightconfig.json
+
+# uv
+uv.lock

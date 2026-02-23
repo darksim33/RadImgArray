@@ -1,5 +1,7 @@
-import pytest
+import shutil
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -8,13 +10,18 @@ def root():
 
 
 @pytest.fixture
+def tmpdir(root):
+    return root / "tests" / ".temp"
+
+
+@pytest.fixture
 def nifti_file(root):
     return root / "tests" / ".assets" / "test_img.nii.gz"
 
 
 @pytest.fixture
-def nifti_out_file(root):
-    file = root / "tests" / "out_img.nii.gz"
+def nifti_out_file(tmpdir):
+    file = tmpdir / "out_img.nii.gz"
     yield file
     if file.is_file():
         file.unlink()
@@ -31,8 +38,17 @@ def dicom_folder(root):
 
 
 @pytest.fixture
-def excel_out_file(root):
-    file = root / "tests" / "out.xlsx"
+def dicom_out_folder(tmpdir):
+    """Fixture for DICOM output folder with cleanup."""
+    folder = tmpdir / "out_dicom"
+    yield folder
+    if folder.exists():
+        shutil.rmtree(folder)
+
+
+@pytest.fixture
+def excel_out_file(tmpdir):
+    file = tmpdir / "out.xlsx"
     yield file
     if file.is_file():
         file.unlink()

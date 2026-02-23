@@ -3,20 +3,20 @@
 This module provides the base image class for radiological enhanced image array.
 
 Classes:
-    RadImgArray: Radiological enhanced image array class
+    ImgArray: Radiological enhanced image array class
 """
 
 from __future__ import annotations
-import numpy as np
-from pathlib import Path
+
 from copy import deepcopy
+from pathlib import Path
 
-from . import nifti
-from . import plotting
-from . import dicom
+import numpy as np
+
+from . import dicom, nifti, plotting
 
 
-class RadImgArray(np.ndarray):
+class ImgArray(np.ndarray):
     """Radiological enhanced image array class
 
     Attributes:
@@ -30,7 +30,7 @@ class RadImgArray(np.ndarray):
                 "shape": (x, y, z, t)
             }
     Methods:
-        __new__: Create a new RadImgArray object
+        __new__: Create a new ImgArray object
         __array_finalize__: Copy metadata when creating new array
         copy: Copy array and metadata
         save: Save image data to file
@@ -46,10 +46,10 @@ class RadImgArray(np.ndarray):
         *args,
         **kwargs,
     ):
-        """Create a new RadImgArray object
+        """Create a new ImgArray object
         Args:
             _input (np.ndarray, list, Path, str): data input to transform/load
-            info (dict, optional): dictionary from a already initialized RadImageArray
+            info (dict, optional): dictionary from a already initialized ImageArray
                 with additional information about the image
             *args: additional arguments
             **kwargs: additional keyword arguments
@@ -72,7 +72,7 @@ class RadImgArray(np.ndarray):
                 info = cls.__get_default_info()
                 info["type"] = "np_array"
         elif _input is None:
-            raise TypeError("RadImgArray() missing required argument 'input' (pos 0)")
+            raise TypeError("ImgArray() missing required argument 'input' (pos 0)")
         else:
             raise TypeError("Input type not supported")
         obj = np.asarray(array).view(cls)
@@ -120,7 +120,7 @@ class RadImgArray(np.ndarray):
             # TODO: Update nifti data if necessary
             np_array = np.array(self.copy())
             nifti.save(np_array, path, self.info, **kwargs)
-        elif path.suffix == ".dcm" or path.is_dir():
+        elif save_as in ["dicom", "dcm", "DICOM"] or path.suffix == ".dcm" or path.is_dir():
             dicom.save(self, path, self.info)
 
     def show(self, **kwargs):
