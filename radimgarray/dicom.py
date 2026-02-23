@@ -29,7 +29,7 @@ class DicomImage:
         self.header = (
             None  # list of dict with header information for each loaded dicom file
         )
-        # TODO: no method for actual calculation from header data available atm
+        # Note: affine matrix calculation is implemented in _calculate_affine_from_dicom()
         self.affine = np.eye(
             4
         )  # affine matrix for position of image array data in reference space

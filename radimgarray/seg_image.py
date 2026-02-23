@@ -68,9 +68,6 @@ class SegArray(ImgArray):
         else:
             raise ValueError(f"Segmentation value {value} not found in array")
 
-    def zero_pad(self):
-        pass
-
     # def get_single_seg_array(self, value: int):
     #     """
     #     Get a new array with only a single segmentation presented by value.
