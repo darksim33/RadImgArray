@@ -1,11 +1,13 @@
 from __future__ import annotations
-import numpy as np
+
 from pathlib import Path
 
-from .base_image import RadImgArray
+import numpy as np
+
+from .base_image import ImgArray
 
 
-class SegImgArray(RadImgArray):
+class SegArray(ImgArray):
     """A class for storing and manipulating segmentation images.
 
     Attributes:
@@ -65,9 +67,6 @@ class SegImgArray(RadImgArray):
             return list(zip(*raw_indices))
         else:
             raise ValueError(f"Segmentation value {value} not found in array")
-
-    def zero_pad(self):
-        pass
 
     # def get_single_seg_array(self, value: int):
     #     """

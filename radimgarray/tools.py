@@ -5,11 +5,15 @@ This module contains tools for image processing and analysis.
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
+from turtle import st
+
 import numpy as np
 import pandas as pd
 
-from radimgarray import RadImgArray, SegImgArray
+from .base_image import ImgArray
+from .seg_image import SegArray
 
 
 def zero_pad_to_square(array, k_space: bool = False):
@@ -56,13 +60,13 @@ def pad_array(array: np.ndarray, pad: np.ndarray):
 
 
 def get_mean_signal(
-    img: RadImgArray | np.ndarray, seg: SegImgArray, value: int
+    img: ImgArray | np.ndarray, seg: SegArray, value: int
 ) -> np.ndarray:
     """Get the mean signal of a specific segmentation.
 
     Args:
-        img (RadImgArray, np.ndarray): The image data.
-        seg (SegImageArray): The segmentation data
+        img (ImgArray, np.ndarray): The image data.
+        seg (SegArray): The segmentation data
         value (int): The segmentation value to find.
     Returns:
         (list): The mean signal of the segmentation value.
@@ -88,7 +92,16 @@ def get_mean_signal(
     if value in seg.seg_values:
         mask = seg == value
         if seg.ndim == 4:
-            img_masked = img[mask.squeeze(axis=3)]
+            if seg.shape[-1] != 1:
+                warnings.warn(
+                    "Segmentation array has multiple channels, only the first channel will be used",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                mask = mask[..., 0]
+            if mask.ndim == 4:
+                mask = mask.squeeze(axis=3)
+            img_masked = img[mask]
         else:
             img_masked = img[mask]
         return np.mean(img_masked, axis=0)
@@ -96,7 +109,7 @@ def get_mean_signal(
         raise ValueError(f"Segmentation value {value} not found in array")
 
 
-def get_single_seg_array(seg: SegImgArray, value: int) -> SegImgArray:
+def get_single_seg_array(seg: SegArray, value: int) -> SegArray:
     """Get a new array with only a single segmentation presented by value.
 
     Args:
@@ -107,19 +120,19 @@ def get_single_seg_array(seg: SegImgArray, value: int) -> SegImgArray:
     """
     if value in seg.seg_values:
         new_array = np.where(seg == value, 1, 0)
-        return SegImgArray(new_array, info=seg.info)
+        return SegArray(new_array, info=seg.info)
     else:
         raise ValueError(f"Segmentation value {value} not found in array")
 
 
 def save_mean_seg_signals_to_excel(
-    img: RadImgArray, seg: SegImgArray, b_values: np.ndarray, path: Path
+    img: ImgArray, seg: SegArray, b_values: np.ndarray, path: Path
 ):
     """Save the mean segmentation signal to an Excel file.
 
     Args:
-        img (RadImgArray): The image data.
-        seg (SegImageArray): The segmentation data.
+        img (ImgArray): The image data.
+        seg (SegArray): The segmentation data.
         b_values (np.ndarray): The b-values of the image.
         path (Path): The path to save the Excel file.
     See Also:
@@ -187,7 +200,7 @@ def array_to_rgba(
 
 
 def slice_to_rgba(
-    img: RadImgArray | np.ndarray, slice_num: int, alpha: float | np.float = 1
+    img: ImgArray | np.ndarray, slice_num: int, alpha: float | np.float = 1
 ) -> np.ndarray:
     """Convert a 2D, 3D or 4D array slice to RGBA format.
 
