@@ -19,7 +19,7 @@ dependencies = [
     "openpyxl>=3.0.9",
 ]
 
-[project.optional-dependencies]
+[pdependency-groups]
 dev = [
     "pytest>=7.2",
     "black>=23.3",
